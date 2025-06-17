@@ -525,6 +525,9 @@ where
             true
         }
     });
+    // Order it such that we process in order of bottom to top, left to right
+    frames.sort_unstable_by_key(|fr| (fr.location.depth, fr.start_time));
+    println!("FIRST 5: {:?}", &frames[..5]);
 
     // draw canvas, and embed interactive JavaScript program
     let imageheight = ((depthmax + 1) * opt.frame_height) + opt.ypad1() + opt.ypad2();
@@ -570,7 +573,21 @@ where
 
     // draw frames
     let mut samples_txt_buffer = num_format::Buffer::default();
-    for frame in frames {
+    for (i, frame) in frames.iter().enumerate() {
+        let children_ids = frames
+            .iter()
+            .enumerate()
+            .filter_map(|(i, f)| {
+                if f.location.depth == frame.location.depth + 1
+                    && f.start_time >= frame.start_time
+                    && f.end_time <= frame.end_time
+                {
+                    Some(i)
+                } else {
+                    None
+                }
+            })
+            .collect();
         let x1_pct = frame.start_time as f64 * widthpertime_pct;
         let x2_pct = frame.end_time as f64 * widthpertime_pct;
 
@@ -647,6 +664,8 @@ where
             &mut cache_g,
             &frame,
             &buffer[info],
+            i,
+            children_ids,
         )?;
 
         svg.write_event(Event::Start(BytesStart::new("title")))?;
@@ -750,6 +769,8 @@ fn write_container_start<'a, W: Write>(
     cache_g: &mut Event<'_>,
     frame: &merge::TimedFrame<'_>,
     mut title: &'a str,
+    idx: usize,
+    children: Vec<usize>,
 ) -> io::Result<(bool, &'a str)> {
     let frame_attributes = opt
         .func_frameattrs
@@ -770,6 +791,34 @@ fn write_container_start<'a, W: Write>(
         }
     } else if let Event::Start(ref mut c) = cache_g {
         c.clear_attributes();
+        write_container_attributes(
+            cache_g,
+            &FrameAttrs {
+                title: None,
+                attrs: indexmap::IndexMap::from_iter(
+                    [
+                        ("id".to_string(), format!("func-{idx}")),
+                        (
+                            "aria-owns".to_string(),
+                            children
+                                .iter()
+                                .map(|cid| format!("func-{cid}"))
+                                .collect::<Vec<_>>()
+                                .join(" "),
+                        ),
+                        (
+                            "tabindex".to_string(),
+                            if idx == 0 {
+                                "0".to_string()
+                            } else {
+                                "-1".to_string()
+                            },
+                        ),
+                    ]
+                    .into_iter(),
+                ),
+            },
+        );
         svg.write_event(cache_g.borrow())?;
     }
 
@@ -784,6 +833,7 @@ fn write_container_start<'a, W: Write>(
     cache_g: &mut Event<'_>,
     _frame: &merge::TimedFrame<'_>,
     title: &'a str,
+    idx: usize,
 ) -> io::Result<(bool, &'a str)> {
     if let Event::Start(ref mut c) = cache_g {
         c.clear_attributes();

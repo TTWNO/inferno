@@ -6,3 +6,10 @@
 #frames > *:hover { stroke:black; stroke-width:0.5; cursor:pointer; }
 .hide { display:none; }
 .parent { opacity:0.5; }
+g:focus rect {
+	fill: black;
+}
+g:focus text {
+	stroke: white;
+	fill: white;
+}

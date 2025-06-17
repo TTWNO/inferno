@@ -57,8 +57,7 @@ function init(evt) {
         restore_state();
     }
 }
-// event listeners
-window.addEventListener("click", function(e) {
+function refocus(e) {
     var target = find_group(e.target);
     if (target) {
         if (target.nodeName == "a") {
@@ -87,9 +86,38 @@ window.addEventListener("click", function(e) {
         history.replaceState(null, null, parse_params(params));
     }
     else if (e.target.id == "search") search_prompt();
-}, false)
-// mouse-over for info
+}
+// event listeners
+window.addEventListener("click", refocus, false)
 // show
+window.addEventListener("DOMContentLoaded", () => {
+	var groupss = document.getElementsByTagName("g");
+	console.log(groupss);
+	for (group of groupss) {
+		if (group.id) {
+		console.log(group.id);
+		}
+		group.addEventListener("keydown", function(e) {
+			// space or enter
+			if (e.keyCode === 13 || e.keyCode === 32) {
+					refocus(e);
+					e.preventDefault();
+			}
+		}, false)
+		group.addEventListener("focus", function(e) {
+				console.log("FOCUS!");
+				var target = find_group(e.target);
+				if (target) details.nodeValue = nametype + " " + g_to_text(target);
+		}, false)
+		// clear
+		group.addEventListener("blur", function(e) {
+				console.log("UNFOCUS!");
+				var target = find_group(e.target);
+				if (target) details.nodeValue = ' ';
+		}, false)
+	}
+});
+// mouse-over for info
 window.addEventListener("mouseover", function(e) {
     var target = find_group(e.target);
     if (target) details.nodeValue = nametype + " " + g_to_text(target);
@@ -105,6 +133,67 @@ window.addEventListener("keydown",function (e) {
         e.preventDefault();
         search_prompt();
     }
+}, false)
+// arrow keys for navigation
+window.addEventListener("keydown",function (e) {
+		// left
+		if (e.keyCode === 37) {
+        e.preventDefault();
+				var cur_id = document.activeElement.id;
+				var sel = '[aria-owns~="' + cur_id + '"]';
+				console.log(sel);
+				var parent = document.querySelector(sel);
+				console.log(parent);
+				var idx = parent.getAttribute("aria-owns").split(" ").findIndex(id => id === cur_id);
+				console.log(idx);
+				if (idx === 0) { return; }
+				var sibling_id = parent.getAttribute("aria-owns").split(" ")[idx-1];
+				var sibling = document.getElementById(sibling_id);
+				sibling.tabIndex = -1;
+				sibling.focus();
+		// up
+    } else if (e.keyCode === 38) {
+        e.preventDefault();
+				console.log("up");
+				var gr = find_group(document.activeElement);
+				document.activeElement.tabIndex = null;
+				console.log(gr);
+				var children = gr.getAttribute("aria-owns");
+				console.log(children);
+				var child_id = children.split(" ")[0];
+				console.log(child_id);
+				var child = document.getElementById(child_id);
+				console.log(child);
+				child.tabIndex = -1;
+				child.focus();
+		// right
+    } else if (e.keyCode === 39) {
+			e.preventDefault();
+				console.log("right");
+				var cur_id = document.activeElement.id;
+				var sel = '[aria-owns~="' + cur_id + '"]';
+				console.log(sel);
+				var parent = document.querySelector(sel);
+				console.log(parent);
+				var idx = parent.getAttribute("aria-owns").split(" ").findIndex(id => id === cur_id);
+				console.log(idx);
+				if (idx === parent.getAttribute("aria-owns").length) { return; }
+				var sibling_id = parent.getAttribute("aria-owns").split(" ")[idx+1];
+				var sibling = document.getElementById(sibling_id);
+				sibling.tabIndex = -1;
+				sibling.focus();
+		// down
+		} else if (e.keyCode === 40) {
+			e.preventDefault();
+				console.log("down");
+				var cur_id = document.activeElement.id;
+				var sel = '[aria-owns~="' + cur_id + '"]';
+				console.log(sel);
+				var parent = document.querySelector(sel);
+				console.log(parent);
+				parent.tabIndex = -1;
+				parent.focus();
+		}
 }, false)
 // functions
 function get_params() {
@@ -468,3 +557,4 @@ function search(term) {
 function format_percent(n) {
     return n.toFixed(4) + "%";
 }
+
