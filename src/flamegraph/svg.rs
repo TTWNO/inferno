@@ -161,9 +161,7 @@ text {{ font-family:{}; font-size:{}px }}
         opt.text_truncate_direction == TextTruncateDirection::Right
     ))))?;
     if !opt.no_javascript {
-        svg.write_event(Event::CData(BytesCData::new(include_str!(
-            "flamegraph2.js"
-        ))))?;
+        svg.write_event(Event::CData(BytesCData::new(include_str!("flamegraph.js"))))?;
     }
     svg.write_event(Event::End(BytesEnd::new("script")))?;
 
