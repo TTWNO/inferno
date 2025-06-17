@@ -527,7 +527,6 @@ where
     });
     // Order it such that we process in order of bottom to top, left to right
     frames.sort_unstable_by_key(|fr| (fr.location.depth, fr.start_time));
-    println!("FIRST 5: {:?}", &frames[..5]);
 
     // draw canvas, and embed interactive JavaScript program
     let imageheight = ((depthmax + 1) * opt.frame_height) + opt.ypad1() + opt.ypad2();
