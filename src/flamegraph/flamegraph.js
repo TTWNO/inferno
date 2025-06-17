@@ -151,6 +151,8 @@ window.addEventListener("keydown",function (e) {
 				var sibling = document.getElementById(sibling_id);
 				sibling.tabIndex = -1;
 				sibling.focus();
+				var rect = sibling.getBoundingClientRect();
+				window.scrollTo(rect.left, rect.top);
 		// up
     } else if (e.keyCode === 38) {
         e.preventDefault();
@@ -160,12 +162,24 @@ window.addEventListener("keydown",function (e) {
 				console.log(gr);
 				var children = gr.getAttribute("aria-owns");
 				console.log(children);
-				var child_id = children.split(" ")[0];
-				console.log(child_id);
+				var child_id = undefined;
+				for (cid of children.split(" ")) {
+					console.log(cid);
+					var child = document.getElementById(cid);
+					if (!child.classList.contains("hide")) {
+						child_id = cid;
+						break;
+					}
+				}
+				if (!child_id) {
+					return;
+				}
 				var child = document.getElementById(child_id);
 				console.log(child);
 				child.tabIndex = -1;
 				child.focus();
+				var rect = child.getBoundingClientRect();
+				window.scrollTo(rect.left, rect.top);
 		// right
     } else if (e.keyCode === 39) {
 			e.preventDefault();
@@ -182,6 +196,8 @@ window.addEventListener("keydown",function (e) {
 				var sibling = document.getElementById(sibling_id);
 				sibling.tabIndex = -1;
 				sibling.focus();
+				var rect = sibling.getBoundingClientRect();
+				window.scrollTo(rect.left, rect.top);
 		// down
 		} else if (e.keyCode === 40) {
 			e.preventDefault();
@@ -193,6 +209,8 @@ window.addEventListener("keydown",function (e) {
 				console.log(parent);
 				parent.tabIndex = -1;
 				parent.focus();
+				var rect = parent.getBoundingClientRect();
+				window.scrollTo(rect.left, rect.top);
 		}
 }, false)
 // functions
